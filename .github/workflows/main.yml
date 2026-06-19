@@ -49,7 +49,6 @@ jobs:
       - name: SSH远程更新代码+重建容器
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} -p ${{ secrets.SSH_PORT }} << 'EOF'
-          mkdir -p /home/gxy20/simple-web-cicd
           cd /home/gxy20/simple-web-cicd
           git pull origin main
           docker stop flask-web || true
@@ -63,7 +62,7 @@ EOF
   notify:
     runs-on: ubuntu-latest
     needs: deploy
-    if: always()
+    if: always
     steps:
       - name: 流水线完成通知
         run: echo "CI/CD全流程执行结束，状态：${{ job.status }}"
