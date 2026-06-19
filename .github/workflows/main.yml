@@ -1,35 +1,12 @@
-name: CI/CD自动部署Flask
-on:
-  push:
-    branches: [ main ]
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 拉取仓库代码
-        uses: actions/checkout@v4
-
-      - name: 加载SSH私钥，连接云服务器
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
       - name: SSH登录服务器，更新代码
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} -p ${{ secrets.SSH_PORT }} << 'EOF'
-          # 清除Docker镜像加速器配置，解决域名解析失败
-          rm -f /etc/docker/daemon.json
-          systemctl daemon-reload
-          systemctl restart docker
-
-          # 确保项目目录存在
-          mkdir -p /home/gxy20/simple-web-cicd
-          cd /home/gxy20/simple-web-cicd
-          # 无仓库则克隆，有仓库直接拉取最新代码
-          if [ ! -d .git ];then
-            git clone https://github.com/yi0509/simple-web-cicd.git .
-          fi
-          git pull origin main
-          echo "=== 代码拉取完成 ==="
-          echo "服务器Docker网络DNS异常，暂时跳过镜像构建与容器启动步骤"
-EOF
+        run: ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} -p ${{ secrets.SSH_PORT }} "
+          rm -f /etc/docker/daemon.json;
+          systemctl daemon-reload;
+          systemctl restart docker;
+          mkdir -p /home/gxy20/simple-web-cicd;
+          cd /home/gxy20/simple-web-cicd;
+          if [ ! -d .git ];then git clone https://github.com/yi0509/simple-web-cicd.git .; fi;
+          git pull origin main;
+          echo '=== 代码拉取完成 ===';
+          echo '服务器Docker网络DNS异常，暂时跳过镜像构建与容器启动步骤'
+        "
