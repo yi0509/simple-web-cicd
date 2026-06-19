@@ -14,16 +14,22 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: SSH登录服务器，更新代码并重启容器
+      - name: SSH登录服务器，更新代码
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} -p ${{ secrets.SSH_PORT }} << 'EOF'
+          # 清除Docker镜像加速器配置，解决域名解析失败
           rm -f /etc/docker/daemon.json
           systemctl daemon-reload
           systemctl restart docker
+
+          # 确保项目目录存在
+          mkdir -p /home/gxy20/simple-web-cicd
           cd /home/gxy20/simple-web-cicd
+          # 无仓库则克隆，有仓库直接拉取最新代码
+          if [ ! -d .git ];then
+            git clone https://github.com/yi0509/simple-web-cicd.git .
+          fi
           git pull origin main
-          docker stop flask-web || true
-          docker rm flask-web || true
-          docker build -t flask-web .
-          docker run -d --name flask-web -p 80:80 flask-web
-          EOF
+          echo "=== 代码拉取完成 ==="
+          echo "服务器Docker网络DNS异常，暂时跳过镜像构建与容器启动步骤"
+EOF
