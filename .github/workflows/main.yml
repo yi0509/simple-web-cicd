@@ -1,0 +1,26 @@
+name: CI/CD自动部署Flask
+on:
+  push:
+    branches: [ main ]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 拉取仓库代码
+        uses: actions/checkout@v4
+
+      - name: 加载SSH私钥，连接云服务器
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: SSH登录服务器，更新代码并重启容器
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} -p ${{ secrets.SSH_PORT }} << 'EOF'
+          cd /home/gxy20/simple-web-cicd
+          git pull origin main
+          docker stop flask-web || true
+          docker rm flask-web || true
+          docker build -t flask-web .
+          docker run -d --name flask-web -p 80:80 flask-web
+          EOF
