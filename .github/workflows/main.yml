@@ -1,12 +1,15 @@
       - name: SSH登录服务器，更新代码
-        run: ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} -p ${{ secrets.SSH_PORT }} "
-          rm -f /etc/docker/daemon.json;
-          systemctl daemon-reload;
-          systemctl restart docker;
-          mkdir -p /home/gxy20/simple-web-cicd;
-          cd /home/gxy20/simple-web-cicd;
-          if [ ! -d .git ];then git clone https://github.com/yi0509/simple-web-cicd.git .; fi;
-          git pull origin main;
-          echo '=== 代码拉取完成 ===';
-          echo '服务器Docker网络DNS异常，暂时跳过镜像构建与容器启动步骤'
-        "
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} -p ${{ secrets.SSH_PORT }} << 'EOF'
+          rm -f /etc/docker/daemon.json
+          systemctl daemon-reload
+          systemctl restart docker
+          mkdir -p /home/gxy20/simple-web-cicd
+          cd /home/gxy20/simple-web-cicd
+          if [ ! -d .git ];then
+            git clone https://github.com/yi0509/simple-web-cicd.git .
+          fi
+          git pull origin main
+          echo "=== 代码拉取完成 ==="
+          echo "服务器Docker网络DNS异常，暂时跳过镜像构建与容器启动步骤"
+EOF
