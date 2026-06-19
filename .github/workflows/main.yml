@@ -17,6 +17,9 @@ jobs:
       - name: SSH登录服务器，更新代码并重启容器
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} -p ${{ secrets.SSH_PORT }} << 'EOF'
+          rm -f /etc/docker/daemon.json
+          systemctl daemon-reload
+          systemctl restart docker
           cd /home/gxy20/simple-web-cicd
           git pull origin main
           docker stop flask-web || true
